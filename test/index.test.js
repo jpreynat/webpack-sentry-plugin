@@ -16,7 +16,7 @@ function ensureOutputPath() {
 }
 
 // Don't mock HTTP requests - testing the correctness of the integration
-jest.unmock('request-promise')
+jest.unmock('axios')
 
 beforeEach(ensureOutputPath)
 

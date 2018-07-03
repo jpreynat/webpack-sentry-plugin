@@ -1,6 +1,6 @@
 import { createWebpackConfig, runWebpack } from './helpers/webpack'
 
-jest.mock('request-promise')
+jest.mock('axios')
 
 it('adds warning if Sentry organization slug is missing', () =>
   runWebpack(

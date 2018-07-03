@@ -1,4 +1,4 @@
-import request from 'request-promise'
+import axios from 'axios'
 import dotenv from 'dotenv'
 
 // Silence logs if .env file is missing (configured through environment
@@ -12,42 +12,31 @@ export const {
 } = process.env
 
 const SENTRY_URL = `https://sentry.io/api/0/projects/${SENTRY_ORGANIZATION}/${SENTRY_PROJECT}` // eslint-disable-line max-len
+const axiosClient = axios.create({
+  baseURL: SENTRY_URL,
+  headers: {
+    Authorization: `Bearer ${SENTRY_API_KEY}`
+  }
+})
 
 export function cleanUpRelease(releaseVersion) {
   return () =>
-    request({
-      url: `${SENTRY_URL}/releases/${releaseVersion}/`,
-      method: 'DELETE',
-      auth: {
-        bearer: SENTRY_API_KEY,
-      },
-    }).catch((err) => {
-      // eslint-disable-next-line no-console
-      console.error(
-        `ERROR CLEANING UP RELEASE!
+    axiosClient.delete(`/releases/${releaseVersion}/`)
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.error(
+          `ERROR CLEANING UP RELEASE!
 Release version: ${releaseVersion}
 Status: ${err.statusCode}
 Error: ${err.error}`,
-      )
-    })
+        )
+      })
 }
 
 export function fetchRelease(version) {
-  return request({
-    url: `${SENTRY_URL}/releases/${version}/`,
-    auth: {
-      bearer: SENTRY_API_KEY,
-    },
-    json: true,
-  })
+  return axiosClient.get(`/releases/${version}/`)
 }
 
 export function fetchFiles(version) {
-  return request({
-    url: `${SENTRY_URL}/releases/${version}/files/`,
-    auth: {
-      bearer: SENTRY_API_KEY,
-    },
-    json: true,
-  })
+  return axiosClient.get(`/releases/${version}/files/`)
 }
