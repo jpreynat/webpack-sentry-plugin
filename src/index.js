@@ -196,9 +196,7 @@ module.exports = class SentryPlugin {
     form.append('name', this.filenameTransform(name))
 
     const requestOpts = this.combineRequestOptions({
-      headers: {
-        ...form.getHeaders()
-      },
+      headers: form.getHeaders()
     }, this.uploadFileRequestOptions)
     return axios.post(`/${this.releaseVersion}/files/`,
       form,
