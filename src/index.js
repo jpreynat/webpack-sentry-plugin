@@ -1,4 +1,5 @@
-import request from 'request-promise'
+import axios from 'axios'
+import FormData from 'form-data'
 import fs from 'fs'
 
 const BASE_SENTRY_URL = 'https://sentry.io/api/0'
@@ -71,6 +72,13 @@ module.exports = class SentryPlugin {
 
     this.deleteAfterCompile = options.deleteAfterCompile
     this.deleteRegex = options.deleteRegex || DEFAULT_DELETE_REGEX
+
+    this.axios = axios.create({
+      baseURL: this.sentryReleaseUrl(),
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`
+      }
+    })
   }
 
   apply(compiler) {
@@ -172,22 +180,10 @@ module.exports = class SentryPlugin {
   }
 
   createRelease() {
-    return request(
-      this.combineRequestOptions(
-        {
-          url: `${this.sentryReleaseUrl()}/`,
-          method: 'POST',
-          auth: {
-            bearer: this.apiKey,
-          },
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(this.releaseBody),
-        },
-        this.createReleaseRequestOptions,
-      ),
+    const requestOpts = this.combineRequestOptions({},
+      this.createReleaseRequestOptions
     )
+    return axios.post('/', this.releaseBody, requestOpts)
   }
 
   uploadFiles(files) {
@@ -195,22 +191,18 @@ module.exports = class SentryPlugin {
   }
 
   uploadFile({ path, name }) {
-    return request(
-      this.combineRequestOptions(
-        {
-          url: `${this.sentryReleaseUrl()}/${this.releaseVersion}/files/`,
-          method: 'POST',
-          auth: {
-            bearer: this.apiKey,
-          },
-          headers: {},
-          formData: {
-            file: fs.createReadStream(path),
-            name: this.filenameTransform(name),
-          },
-        },
-        this.uploadFileRequestOptions,
-      ),
+    const form = new FormData()
+    form.append('file', fs.createReadStream(path))
+    form.append('name', this.filenameTransform(name))
+
+    const requestOpts = this.combineRequestOptions({
+      headers: {
+        ...form.getHeaders()
+      },
+    }, this.uploadFileRequestOptions)
+    return axios.post(`/${this.releaseVersion}/files/`,
+      form,
+      requestOpts
     )
   }
 
