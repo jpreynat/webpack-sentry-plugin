@@ -8,6 +8,10 @@ var _axios = require('axios');
 
 var _axios2 = _interopRequireDefault(_axios);
 
+var _formData = require('form-data');
+
+var _formData2 = _interopRequireDefault(_formData);
+
 var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
@@ -198,11 +202,8 @@ module.exports = function () {
   }, {
     key: 'createRelease',
     value: function createRelease() {
-      return _axios2.default.post('/', this.releaseBody, this.combineRequestOptions({
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }, this.createReleaseRequestOptions));
+      var requestOpts = this.combineRequestOptions({}, this.createReleaseRequestOptions);
+      return this.axios.post('/', this.releaseBody, requestOpts);
     }
   }, {
     key: 'uploadFiles',
@@ -215,12 +216,14 @@ module.exports = function () {
       var path = _ref.path,
           name = _ref.name;
 
-      return _axios2.default.post('/' + this.releaseVersion + '/files/', {
-        file: _fs2.default.createReadStream(path),
-        name: this.filenameTransform(name)
-      }, this.combineRequestOptions({
-        headers: {}
-      }, this.uploadFileRequestOptions));
+      var form = new _formData2.default();
+      form.append('file', _fs2.default.createReadStream(path));
+      form.append('name', this.filenameTransform(name));
+
+      var requestOpts = this.combineRequestOptions({
+        headers: form.getHeaders()
+      }, this.uploadFileRequestOptions);
+      return this.axios.post('/' + this.releaseVersion + '/files/', form, requestOpts);
     }
   }, {
     key: 'sentryReleaseUrl',
