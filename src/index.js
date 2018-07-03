@@ -183,7 +183,7 @@ module.exports = class SentryPlugin {
     const requestOpts = this.combineRequestOptions({},
       this.createReleaseRequestOptions
     )
-    return axios.post('/', this.releaseBody, requestOpts)
+    return this.axios.post('/', this.releaseBody, requestOpts)
   }
 
   uploadFiles(files) {
@@ -198,7 +198,7 @@ module.exports = class SentryPlugin {
     const requestOpts = this.combineRequestOptions({
       headers: form.getHeaders()
     }, this.uploadFileRequestOptions)
-    return axios.post(`/${this.releaseVersion}/files/`,
+    return this.axios.post(`/${this.releaseVersion}/files/`,
       form,
       requestOpts
     )
